@@ -4,7 +4,6 @@ import config from '../config';
 import BlockProcessor from './BlockProcessor';
 
 const redis = new Redis(config.redis_url);
-console.log('PROVIDER', config.ws_url, config.eth_network);
 const provider = new providers.WebSocketProvider(config.ws_url, config.eth_network);
 
 

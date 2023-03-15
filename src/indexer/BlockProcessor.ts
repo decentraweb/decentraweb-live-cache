@@ -24,25 +24,26 @@ function isNewEvent(event: ContractEvent, lastEventIndex: EventIdx) {
   return event.logIndex > lastEventIndex.logIndex;
 }
 
-interface AddrRecord {
+export interface AddrRecord {
   id: EventIdx;
-  address: string;
+  address: string | null
 }
 
-interface ReverseRecord {
+export interface ReverseRecord {
   id: EventIdx;
-  name: string;
+  name: string | null
 }
 
 class BlockProcessor {
-  private lastProcessedBlock: number = 0;
-  private currentBlockNumber: number = 0;
+  private _lastProcessedBlock: number = 0;
+  private _currentBlockNumber: number = 0;
   private provider: providers.BaseProvider;
   private redis: Redis;
 
   private resolver: ethers.Contract | null = null;
   private reverseResolver: ethers.Contract | null = null;
 
+  readonly lastBlockKey = LAST_BLOCK_KEY;
   readonly addrCache: Cache<AddrRecord>;
   readonly reverseCache: Cache<ReverseRecord>;
 
@@ -50,6 +51,14 @@ class BlockProcessor {
   readonly reverseEvent = 'NameChanged(bytes32,string)';
 
   private iteratingBlocks: boolean = false;
+
+  get lastProcessedBlock() {
+    return this._lastProcessedBlock;
+  }
+
+  get currentBlockNumber() {
+    return this._currentBlockNumber;
+  }
 
   constructor(provider: providers.BaseProvider, redis: Redis) {
     this.provider = provider;
@@ -72,25 +81,25 @@ class BlockProcessor {
       provider: this.provider,
       name: 'DefaultReverseResolver'
     });
-    const lastBlock = (await this.redis.get(LAST_BLOCK_KEY)) || '0';
-    this.lastProcessedBlock = parseInt(lastBlock) || START_BLOCK[networkName];
-    this.currentBlockNumber = await this.provider.getBlockNumber();
-    if (this.lastProcessedBlock < this.currentBlockNumber) {
+    const lastBlock = (await this.redis.get(this.lastBlockKey)) || '0';
+    this._lastProcessedBlock = parseInt(lastBlock) || START_BLOCK[networkName];
+    this._currentBlockNumber = await this.provider.getBlockNumber();
+    if (this._lastProcessedBlock < this._currentBlockNumber) {
       this.iterateBlocks();
     }
     this.provider.on('block', this.handleBlock);
     console.log(`Started listening for blocks.`);
     console.log(
-      `Last known block is ${this.lastProcessedBlock}, we are ${
-        this.currentBlockNumber - this.lastProcessedBlock
+      `Last known block is ${this._lastProcessedBlock}, we are ${
+        this._currentBlockNumber - this._lastProcessedBlock
       } blocks behind.`
     );
   };
 
   private handleBlock = (blockNumber: number): void => {
     console.log('New block mined', blockNumber);
-    if (blockNumber > this.currentBlockNumber) {
-      this.currentBlockNumber = blockNumber;
+    if (blockNumber > this._currentBlockNumber) {
+      this._currentBlockNumber = blockNumber;
     }
     this.iterateBlocks();
   };
@@ -100,14 +109,14 @@ class BlockProcessor {
       return;
     }
     this.iteratingBlocks = true;
-    while (this.lastProcessedBlock < this.currentBlockNumber) {
-      console.log('Iterate block', this.lastProcessedBlock, this.currentBlockNumber);
-      this.lastProcessedBlock++;
+    while (this._lastProcessedBlock < this._currentBlockNumber) {
+      console.log('Iterate block', this._lastProcessedBlock, this._currentBlockNumber);
+      this._lastProcessedBlock++;
       try {
-        await this.processBlock(this.lastProcessedBlock);
-        await this.redis.set(LAST_BLOCK_KEY, this.lastProcessedBlock);
+        await this.processBlock(this._lastProcessedBlock);
+        await this.redis.set(this.lastBlockKey, this._lastProcessedBlock);
       } catch (e) {
-        this.lastProcessedBlock--;
+        this._lastProcessedBlock--;
         this.iteratingBlocks = false;
         throw e;
       }
@@ -185,8 +194,8 @@ class BlockProcessor {
 
   public status() {
     return {
-      lastProcessedBlock: this.lastProcessedBlock,
-      currentBlockNumber: this.currentBlockNumber
+      lastProcessedBlock: this._lastProcessedBlock,
+      currentBlockNumber: this._currentBlockNumber
     };
   }
 

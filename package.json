@@ -5,9 +5,11 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "prestart": "npm run build",
     "start": "node dist/app.js",
-    "build": "tsc",
+    "preseed": "npm run build",
+    "seed": "node dist/seed.js",
     "watch": "tsc --watch"
   },
   "author": "",
