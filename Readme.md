@@ -5,7 +5,9 @@ Cache data is stored in Redis.
 To start service do following:
 1. Clone repository
 2. Run `npm install`
-3. Copy `.env.example` file to `.env` and set `REDIS_URL` and `WEBSOCKET_URL`
+3. Copy `.env.example` file to `.env` and set `REDIS_URL`, `ETH_NETWORK` and `WEBSOCKET_URL`. 
+
+**Note** Currently only `mainnet` and `goerli` networks are supported.
 
 ## Seeding DB
 In repository root there is `seed_data` directory that contains JSON files with seed data pulled from specific ETH network at specific block number.
