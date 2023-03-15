@@ -1,4 +1,4 @@
-import { providers } from 'ethers';
+import {ethers, providers} from 'ethers';
 import { Redis } from 'ioredis';
 import config from '../config';
 import BlockProcessor from './BlockProcessor';
@@ -13,12 +13,13 @@ blockProcessor.start().then(() => {
   console.log('Started processing eth blocks');
 });
 
-export async function resolveAddress(address: string, forceRefresh?: boolean) {
-  console.log('resolveAddress', address);
-  return '';
+export async function resolveAddress(address: string, forceRefresh?: boolean): Promise<string | null> {
+  const addr = ethers.utils.getAddress(address);
+  const record = await blockProcessor.getName(addr, forceRefresh);
+  return record ? record.name : null
 }
 
-export async function resolveName(name: string, forceRefresh?: boolean) {
-  console.log('resolveName', name);
-  return '';
+export async function resolveName(name: string, forceRefresh?: boolean): Promise<string | null> {
+  const record = await blockProcessor.getAddress(name, forceRefresh)
+  return record ? record.address : null
 }

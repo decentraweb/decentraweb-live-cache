@@ -23,11 +23,6 @@ redis
     const blockProcessor = new BlockProcessor(provider, redis);
     const addresses: Array<[string, AddrRecord]> = Object.entries(ethAddressNodes).map(([node, address]) => {
       return [node, {
-        id: {
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0
-        },
         address
       }];
     })
@@ -36,11 +31,6 @@ redis
       const reverseName = `${address.slice(2)}.addr.reverse`;
       const reverseHash = namehash(reverseName);
       return [reverseHash, {
-        id: {
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0
-        },
         name: await dwebRegistry.getReverseRecord(address, true)
       }];
     }));

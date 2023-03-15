@@ -1,6 +1,6 @@
 import { ethers, Event as ContractEvent, providers } from 'ethers';
 import { Redis } from 'ioredis';
-import { EthNetwork } from '@decentraweb/core';
+import { DWEBRegistry, EthNetwork } from '@decentraweb/core';
 import { hash as namehash } from '@ensdomains/eth-ens-namehash';
 import { getContract, getContractConfig } from '@decentraweb/core/build/contracts';
 import { Cache } from '../redis/Cache';
@@ -25,13 +25,13 @@ function isNewEvent(event: ContractEvent, lastEventIndex: EventIdx) {
 }
 
 export interface AddrRecord {
-  id: EventIdx;
-  address: string | null
+  eventId?: EventIdx;
+  address: string | null;
 }
 
 export interface ReverseRecord {
-  id: EventIdx;
-  name: string | null
+  eventId?: EventIdx;
+  name: string | null;
 }
 
 class BlockProcessor {
@@ -40,6 +40,7 @@ class BlockProcessor {
   private provider: providers.BaseProvider;
   private redis: Redis;
 
+  private _dwebRegistry: DWEBRegistry | null = null;
   private resolver: ethers.Contract | null = null;
   private reverseResolver: ethers.Contract | null = null;
 
@@ -68,8 +69,8 @@ class BlockProcessor {
   }
 
   public start = async (): Promise<void> => {
-    const network = await this.provider.getNetwork();
-    const networkName = network.name as EthNetwork;
+    const networkName = await this.detectNetwork();
+    console.log(`Starting block processor for ${networkName}`);
     const contractConfig = getContractConfig(networkName);
     this.resolver = getContract({
       address: contractConfig.PublicResolver,
@@ -96,6 +97,22 @@ class BlockProcessor {
     );
   };
 
+  async detectNetwork(): Promise<EthNetwork> {
+    const network = await this.provider.getNetwork();
+    if(network.name === 'homestead') {
+      return 'mainnet';
+    }
+    return network.name as EthNetwork;
+  }
+
+  async dwebRegistry() {
+    if (!this._dwebRegistry) {
+      const networkName = await this.detectNetwork();
+      this._dwebRegistry = new DWEBRegistry({ provider: this.provider, network: networkName });
+    }
+    return this._dwebRegistry;
+  }
+
   private handleBlock = (blockNumber: number): void => {
     console.log('New block mined', blockNumber);
     if (blockNumber > this._currentBlockNumber) {
@@ -110,7 +127,6 @@ class BlockProcessor {
     }
     this.iteratingBlocks = true;
     while (this._lastProcessedBlock < this._currentBlockNumber) {
-      console.log('Iterate block', this._lastProcessedBlock, this._currentBlockNumber);
       this._lastProcessedBlock++;
       try {
         await this.processBlock(this._lastProcessedBlock);
@@ -125,7 +141,7 @@ class BlockProcessor {
   };
 
   private processBlock = async (blockNumber: number): Promise<void> => {
-    console.log('PROCESS BLOCK', blockNumber);
+    console.log('Process block', blockNumber);
     await Promise.all([
       this.processAddrEvents(blockNumber),
       this.processReverseEvents(blockNumber)
@@ -148,7 +164,7 @@ class BlockProcessor {
       data.push([
         namehash,
         {
-          id: {
+          eventId: {
             blockNumber,
             transactionIndex,
             logIndex
@@ -180,7 +196,7 @@ class BlockProcessor {
       data.push([
         nodehash,
         {
-          id: {
+          eventId: {
             blockNumber,
             transactionIndex,
             logIndex
@@ -199,15 +215,33 @@ class BlockProcessor {
     };
   }
 
-  public getAddess(domain: string) {
+  public async getAddress(
+    domain: string,
+    forceRefresh: boolean = false
+  ): Promise<AddrRecord | null> {
     const domainHash = namehash(domain);
-    return this.addrCache.get(domainHash);
+    if (!forceRefresh) {
+      return this.addrCache.get(domainHash);
+    }
+    const registry = await this.dwebRegistry();
+    const address = await registry.name(domain).getAddress();
+    await this.addrCache.set(domainHash, { address });
+    return { address };
   }
 
-  public getName(address: string) {
+  public async getName(
+    address: string,
+    forceRefresh: boolean = false
+  ): Promise<ReverseRecord | null> {
     const reverseName = `${address.slice(2)}.addr.reverse`;
     const reverseHash = namehash(reverseName);
-    return this.reverseCache.get(reverseHash);
+    if (!forceRefresh) {
+      return this.reverseCache.get(reverseHash);
+    }
+    const registry = await this.dwebRegistry();
+    const name = await registry.getReverseRecord(address);
+    await this.reverseCache.set(reverseHash, { name });
+    return { name };
   }
 }
 
