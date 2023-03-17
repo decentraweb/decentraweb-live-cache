@@ -7,6 +7,8 @@ import { Cache } from '../redis/Cache';
 import { KEY_PREFIX, START_BLOCK } from '../lib/constants';
 
 const LAST_BLOCK_KEY = `${KEY_PREFIX}:lastKnownBlock`;
+//If no block events received for 30 seconds, we assume that provider is stuck, so we need to restart
+const BLOCK_TIMEOUT = 30000;
 
 interface EventIdx {
   blockNumber: number;
@@ -39,7 +41,7 @@ class BlockProcessor {
   private _currentBlockNumber: number = 0;
   private provider: providers.BaseProvider;
   private redis: Redis;
-
+  private blockEventTimeout: NodeJS.Timeout | null = null;
   private _dwebRegistry: DWEBRegistry | null = null;
   private resolver: ethers.Contract | null = null;
   private reverseResolver: ethers.Contract | null = null;
@@ -115,6 +117,12 @@ class BlockProcessor {
 
   private handleBlock = (blockNumber: number): void => {
     console.log('New block mined', blockNumber);
+    if(this.blockEventTimeout){
+      clearTimeout(this.blockEventTimeout);
+    }
+    this.blockEventTimeout = setTimeout(()=>{
+      throw new Error(`No block events received for ${BLOCK_TIMEOUT} ms. Restarting...`);
+    }, BLOCK_TIMEOUT);
     if (blockNumber > this._currentBlockNumber) {
       this._currentBlockNumber = blockNumber;
     }
