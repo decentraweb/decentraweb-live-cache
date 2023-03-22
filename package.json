@@ -8,8 +8,10 @@
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node dist/app.js",
+    "preflush": "npm run build",
+    "flush": "node dist/bin/flush.js",
     "preseed": "npm run build",
-    "seed": "node dist/seed.js",
+    "seed": "node dist/bin/seed.js",
     "watch": "tsc --watch"
   },
   "author": "",

@@ -2,9 +2,9 @@ import {hash as namehash} from "@ensdomains/eth-ens-namehash";
 import {DWEBRegistry} from "@decentraweb/core";
 import * as path from "path";
 import { providers } from 'ethers';
-import BlockProcessor, {AddrRecord, ReverseRecord} from './indexer/BlockProcessor';
+import BlockProcessor, {AddrRecord, ReverseRecord} from '../indexer/BlockProcessor';
 import { Redis } from 'ioredis';
-import config from './config';
+import config from '../config';
 
 
 const seedDirectory = path.join(__dirname, `../seed_data/${config.eth_network}`);
