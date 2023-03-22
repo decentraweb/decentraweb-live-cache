@@ -44,11 +44,11 @@ router.post('/address/batch', async (ctx) => {
   const forceRefresh = ctx.query.refresh === '1';
   const promises = ctx.request.body.map((address: string) => {
     return resolveAddress(address, forceRefresh)
-      .then((name) => {
+      .then((result) => {
         return {
           address,
           success: true,
-          name
+          ...result
         };
       })
       .catch((e) => {
