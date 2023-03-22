@@ -7,7 +7,7 @@ import { Redis } from 'ioredis';
 import config from '../config';
 
 
-const seedDirectory = path.join(__dirname, `../seed_data/${config.eth_network}`);
+const seedDirectory = path.join(__dirname, `../../seed_data/${config.eth_network}`);
 const seedBlockNumber: number = require(`${seedDirectory}/block_number.json`);
 const ethAddressNodes: Record<string, string> = require(`${seedDirectory}/eth_address_nodes.json`);
 const reverseRecordAddresses: Array<string> = require(`${seedDirectory}/reverse_record_addresses.json`);
