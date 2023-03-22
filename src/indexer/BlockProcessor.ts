@@ -9,6 +9,8 @@ import { KEY_PREFIX, START_BLOCK } from '../lib/constants';
 const LAST_BLOCK_KEY = `${KEY_PREFIX}:lastKnownBlock`;
 //If no block events received for 30 seconds, we assume that provider is stuck, so we need to restart
 const BLOCK_TIMEOUT = 30000;
+//Max number of blocks to process in one iteration
+const MAX_BLOCKS = 100;
 
 interface EventIdx {
   blockNumber: number;
@@ -135,12 +137,13 @@ class BlockProcessor {
     }
     this.iteratingBlocks = true;
     while (this._lastProcessedBlock < this._currentBlockNumber) {
-      this._lastProcessedBlock++;
+      const start = this._lastProcessedBlock + 1;
+      const end = Math.min(this._lastProcessedBlock + MAX_BLOCKS, this._currentBlockNumber);
       try {
-        await this.processBlock(this._lastProcessedBlock);
-        await this.redis.set(this.lastBlockKey, this._lastProcessedBlock);
+        await this.processBlock(start, end);
+        await this.redis.set(this.lastBlockKey, end);
+        this._lastProcessedBlock = end;
       } catch (e) {
-        this._lastProcessedBlock--;
         this.iteratingBlocks = false;
         throw e;
       }
@@ -148,16 +151,16 @@ class BlockProcessor {
     this.iteratingBlocks = false;
   };
 
-  private processBlock = async (blockNumber: number): Promise<void> => {
-    console.log('Process block', blockNumber);
+  private processBlock = async (startBlock: number, endBlock: number): Promise<void> => {
+    console.log(`Process block ${startBlock} - ${endBlock}`);
     await Promise.all([
-      this.processAddrEvents(blockNumber),
-      this.processReverseEvents(blockNumber)
+      this.processAddrEvents(startBlock, endBlock),
+      this.processReverseEvents(startBlock, endBlock)
     ]);
   };
 
-  private async processAddrEvents(blockNumber: number) {
-    const events = await this.resolver?.queryFilter(this.addrEvent, blockNumber, blockNumber);
+  private async processAddrEvents(startBlock: number, endBlock: number) {
+    const events = await this.resolver?.queryFilter(this.addrEvent, startBlock, endBlock);
     if (!events) {
       return;
     }
@@ -184,11 +187,11 @@ class BlockProcessor {
     await this.addrCache.setMultiple(data);
   }
 
-  private async processReverseEvents(blockNumber: number) {
+  private async processReverseEvents(startBlock: number, endBlock: number) {
     const events = await this.reverseResolver?.queryFilter(
       this.reverseEvent,
-      blockNumber,
-      blockNumber
+      startBlock,
+      endBlock
     );
     if (!events) {
       return;
