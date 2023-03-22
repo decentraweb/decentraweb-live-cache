@@ -89,16 +89,16 @@ class BlockProcessor {
     const lastBlock = (await this.redis.get(this.lastBlockKey)) || '0';
     this._lastProcessedBlock = parseInt(lastBlock) || START_BLOCK[networkName];
     this._currentBlockNumber = await this.provider.getBlockNumber();
-    if (this._lastProcessedBlock < this._currentBlockNumber) {
-      this.iterateBlocks();
-    }
-    this.provider.on('block', this.handleBlock);
     console.log(`Started listening for blocks.`);
     console.log(
       `Last known block is ${this._lastProcessedBlock}, we are ${
         this._currentBlockNumber - this._lastProcessedBlock
       } blocks behind.`
     );
+    if (this._lastProcessedBlock < this._currentBlockNumber) {
+      this.iterateBlocks();
+    }
+    this.provider.on('block', this.handleBlock);
   };
 
   async detectNetwork(): Promise<EthNetwork> {
