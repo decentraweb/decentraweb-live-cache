@@ -33,7 +33,7 @@ If service is crashed or stopped it will continue indexing from last indexed blo
 Resolution uses Redis to store name and address cache. To force cache refresh simply add `refresh=1` to querystring.
 ### Resolve single name to address
 ```shell
-curl --location --request GET 'http://localhost:3000/name/serhii2.eth?refresh=1'
+curl --location --request GET 'http://localhost:3000/name/serhii'
 ```
 Sample response:
 ```json
@@ -45,7 +45,7 @@ Sample response:
 ### Resolve multiple names to address
 Request:
 ```shell
-curl --location --request POST 'http://localhost:3000/name/batch?refresh=1' \
+curl --location --request POST 'http://localhost:3000/name/batch' \
 --header 'Content-Type: application/json' \
 --data-raw '[
     "serhii", "mauvis"
@@ -76,11 +76,11 @@ curl --location --request GET 'http://localhost:3000/address/0x13BCb838DAEFF08f4
 Sample response:
 ```json
 {
-    "success": true,
-    "result": {
-        "ens": "serhii2.eth",
-        "dweb": "foobar"
-    }
+  "success": true,
+  "result": {
+    "name": "serhii",
+    "confirmed": true
+  }
 }
 ```
 
@@ -101,8 +101,8 @@ Sample response:
     {
       "address": "0x13BCb838DAEFF08f4E56237098dB1d814eeB837D",
       "success": true,
-      "ens": "serhii2.eth",
-      "dweb": "foobar"
+      "name": "serhii",
+      "confirmed": true
     }
   ]
 }
