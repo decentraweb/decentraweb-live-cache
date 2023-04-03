@@ -1,16 +1,15 @@
-import { ethers, Event as ContractEvent, providers } from 'ethers';
+import { ethers, providers } from 'ethers';
 import { Redis } from 'ioredis';
 import { DWEBRegistry, EthNetwork } from '@decentraweb/core';
 import { hash as namehash } from '@ensdomains/eth-ens-namehash';
 import { getContract, getContractConfig } from '@decentraweb/core/build/contracts';
-import { Cache } from '../redis/Cache';
-import { KEY_PREFIX, START_BLOCK } from '../lib/constants';
+import { Cache } from '../lib/Cache';
+import { START_BLOCK } from './constants';
 
-const LAST_BLOCK_KEY = `${KEY_PREFIX}:lastKnownBlock`;
 //If no block events received for 30 seconds, we assume that provider is stuck, so we need to restart
 const BLOCK_TIMEOUT = 30000;
 //Max number of blocks to process in one iteration
-const MAX_BLOCKS = 100;
+const MAX_BLOCKS = 500;
 
 interface EventIdx {
   blockNumber: number;
@@ -18,15 +17,14 @@ interface EventIdx {
   logIndex: number;
 }
 
-function isNewEvent(event: ContractEvent, lastEventIndex: EventIdx) {
-  if (event.blockNumber !== lastEventIndex.blockNumber) {
-    return event.blockNumber > lastEventIndex.blockNumber;
-  }
-  if (event.transactionIndex !== lastEventIndex.transactionIndex) {
-    return event.transactionIndex > lastEventIndex.transactionIndex;
-  }
-  return event.logIndex > lastEventIndex.logIndex;
-}
+export type AddressResolution =
+  | {
+      name: null;
+    }
+  | {
+      name: string;
+      confirmed: boolean;
+    };
 
 export interface AddrRecord {
   eventId?: EventIdx;
@@ -38,7 +36,7 @@ export interface ReverseRecord {
   name: string | null;
 }
 
-class BlockProcessor {
+export class DWEBIndex {
   private _lastProcessedBlock: number = 0;
   private _currentBlockNumber: number = 0;
   private provider: providers.BaseProvider;
@@ -48,7 +46,7 @@ class BlockProcessor {
   private resolver: ethers.Contract | null = null;
   private reverseResolver: ethers.Contract | null = null;
 
-  readonly lastBlockKey = LAST_BLOCK_KEY;
+  readonly lastBlockKey: string;
   readonly addrCache: Cache<AddrRecord>;
   readonly reverseCache: Cache<ReverseRecord>;
 
@@ -65,11 +63,12 @@ class BlockProcessor {
     return this._currentBlockNumber;
   }
 
-  constructor(provider: providers.BaseProvider, redis: Redis) {
+  constructor(provider: providers.BaseProvider, redisUrl: string, keyPrefix: string) {
     this.provider = provider;
-    this.redis = redis;
-    this.addrCache = new Cache<AddrRecord>(redis, 'addr');
-    this.reverseCache = new Cache<ReverseRecord>(redis, 'reverse');
+    this.redis = new Redis(redisUrl);
+    this.lastBlockKey = `${keyPrefix}:dweb:lastKnownBlock`;
+    this.addrCache = new Cache<AddrRecord>(this.redis, `${keyPrefix}:dweb:addr`);
+    this.reverseCache = new Cache<ReverseRecord>(this.redis, `${keyPrefix}:dweb:reverse`);
   }
 
   public start = async (): Promise<void> => {
@@ -103,7 +102,7 @@ class BlockProcessor {
 
   async detectNetwork(): Promise<EthNetwork> {
     const network = await this.provider.getNetwork();
-    if(network.name === 'homestead') {
+    if (network.name === 'homestead') {
       return 'mainnet';
     }
     return network.name as EthNetwork;
@@ -119,10 +118,10 @@ class BlockProcessor {
 
   private handleBlock = (blockNumber: number): void => {
     console.log('New block mined', blockNumber);
-    if(this.blockEventTimeout){
+    if (this.blockEventTimeout) {
       clearTimeout(this.blockEventTimeout);
     }
-    this.blockEventTimeout = setTimeout(()=>{
+    this.blockEventTimeout = setTimeout(() => {
       throw new Error(`No block events received for ${BLOCK_TIMEOUT} ms. Restarting...`);
     }, BLOCK_TIMEOUT);
     if (blockNumber > this._currentBlockNumber) {
@@ -188,11 +187,7 @@ class BlockProcessor {
   }
 
   private async processReverseEvents(startBlock: number, endBlock: number) {
-    const events = await this.reverseResolver?.queryFilter(
-      this.reverseEvent,
-      startBlock,
-      endBlock
-    );
+    const events = await this.reverseResolver?.queryFilter(this.reverseEvent, startBlock, endBlock);
     if (!events) {
       return;
     }
@@ -244,16 +239,36 @@ class BlockProcessor {
     address: string,
     forceRefresh: boolean = false
   ): Promise<ReverseRecord | null> {
-    const reverseName = `${address.slice(2)}.addr.reverse`;
+    const addr = ethers.utils.getAddress(address);
+    const reverseName = `${addr.slice(2)}.addr.reverse`;
     const reverseHash = namehash(reverseName);
     if (!forceRefresh) {
       return this.reverseCache.get(reverseHash);
     }
     const registry = await this.dwebRegistry();
-    const name = await registry.getReverseRecord(address);
+    const name = await registry.getReverseRecord(addr);
     await this.reverseCache.set(reverseHash, { name });
     return { name };
   }
+
+  async resolveAddress(address: string, forceRefresh?: boolean): Promise<AddressResolution> {
+    const record = await this.getName(address, forceRefresh);
+    if (!record || !record.name) {
+      return {
+        name: null
+      };
+    }
+    const assignedAddress = await this.resolveName(record.name, forceRefresh);
+    return {
+      name: record.name,
+      confirmed: assignedAddress === address
+    };
+  }
+
+  async resolveName(name: string, forceRefresh?: boolean): Promise<string | null> {
+    const record = await this.getAddress(name, forceRefresh);
+    return record?.address ? ethers.utils.getAddress(record.address) : null;
+  }
 }
 
-export default BlockProcessor;
+export default DWEBIndex;

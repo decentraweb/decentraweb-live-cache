@@ -1,0 +1,29 @@
+{
+  "name": "@decentraweb/dweb-live-cache",
+  "version": "0.0.1",
+  "description": "Ethereum address cache library for Decentraweb",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "prepare": "tsc",
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@decentraweb/core": "^1.2.1",
+    "@ensdomains/eth-ens-namehash": "^2.0.15",
+    "ioredis": "^5.3.1"
+  },
+  "devDependencies": {
+    "@types/koa__router": "^12.0.0",
+    "@types/lodash": "^4.14.191",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.4"
+  },
+  "peerDependencies": {
+    "ethers": "^5.7.2"
+  }
+}
