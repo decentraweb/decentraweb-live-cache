@@ -2,7 +2,7 @@ import {hash as namehash} from "@ensdomains/eth-ens-namehash";
 import {DWEBRegistry} from "@decentraweb/core";
 import * as path from "path";
 import { providers } from 'ethers';
-import BlockProcessor, {AddrRecord, ReverseRecord} from '../indexer/BlockProcessor';
+import {DWEBIndex, AddrRecord, ReverseRecord} from '@decentraweb/dweb-live-cache';
 import { Redis } from 'ioredis';
 import config from '../config';
 
@@ -20,7 +20,7 @@ redis
   .flushdb()
   .then(async () => {
     console.log('Seeding DB');
-    const blockProcessor = new BlockProcessor(provider, redis);
+    const blockProcessor = new DWEBIndex(provider, config.redis_url, config.redis_prefix);
     const addresses: Array<[string, AddrRecord]> = Object.entries(ethAddressNodes).map(([node, address]) => {
       return [node, {
         address

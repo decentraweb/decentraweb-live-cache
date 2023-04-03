@@ -2,9 +2,18 @@ import Koa from 'koa';
 import Router from '@koa/router';
 import { koaBody } from 'koa-body';
 import config from './config';
-import { resolveAddress, resolveName } from './indexer';
 import { isArray } from 'lodash';
 import UserError from './lib/errors/UserError';
+import { providers } from 'ethers';
+import { DWEBIndex } from '@decentraweb/dweb-live-cache';
+
+const provider = new providers.WebSocketProvider(config.ws_url, config.eth_network);
+
+const dwebIndex = new DWEBIndex(provider, config.redis_url, config.redis_prefix);
+
+dwebIndex.start().then(() => {
+  console.log('Started processing eth blocks');
+});
 
 const app = new Koa();
 
@@ -33,7 +42,7 @@ router.get('/health-check', (ctx) => {
 router.get('/address/:address', async (ctx) => {
   ctx.body = {
     success: true,
-    result: await resolveAddress(ctx.params.address, ctx.query.refresh === '1')
+    result: await dwebIndex.resolveAddress(ctx.params.address, ctx.query.refresh === '1')
   };
 });
 
@@ -43,7 +52,8 @@ router.post('/address/batch', async (ctx) => {
   }
   const forceRefresh = ctx.query.refresh === '1';
   const promises = ctx.request.body.map((address: string) => {
-    return resolveAddress(address, forceRefresh)
+    return dwebIndex
+      .resolveAddress(address, forceRefresh)
       .then((result) => {
         return {
           address,
@@ -68,7 +78,7 @@ router.post('/address/batch', async (ctx) => {
 router.get('/name/:name', async (ctx) => {
   ctx.body = {
     success: true,
-    result: await resolveName(ctx.params.name, ctx.query.refresh === '1')
+    result: await dwebIndex.resolveName(ctx.params.name, ctx.query.refresh === '1')
   };
 });
 
@@ -78,7 +88,8 @@ router.post('/name/batch', async (ctx) => {
   }
   const promises = ctx.request.body.map((name: string) => {
     const forceRefresh = ctx.query.refresh === '1';
-    return resolveName(name, forceRefresh)
+    return dwebIndex
+      .resolveName(name, forceRefresh)
       .then((address) => {
         return {
           name,

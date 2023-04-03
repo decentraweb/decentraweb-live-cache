@@ -2,36 +2,31 @@
   "name": "decentraweb-redis-index",
   "version": "0.0.1",
   "description": "Indexing service for Decentraweb and ENS",
-  "type": "commonjs",
-  "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build:lib": "npm run build --workspace=@decentraweb/dweb-live-cache",
+    "build:service": "npm run build --workspace=@decentraweb/live-cache-service",
+    "build": "npm run build:lib && npm run build:service",
     "prestart": "npm run build",
-    "start": "node dist/app.js",
+    "start": "node packages/live-cache-service/dist/app.js",
+    "watch:lib": "npm run watch --workspace=@decentraweb/dweb-live-cache",
+    "watch:service": "npm run watch --workspace=@decentraweb/live-cache-service",
     "preflush": "npm run build",
-    "flush": "node dist/bin/flush.js",
+    "flush": "node packages/live-cache-service/dist/bin/flush.js",
     "preseed": "npm run build",
-    "seed": "node dist/bin/seed.js",
+    "seed": "node packages/live-cache-service/dist/bin/seed.js",
     "watch": "tsc --watch"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@decentraweb/core": "^1.2.1",
-    "@ensdomains/eth-ens-namehash": "^2.0.15",
-    "@koa/router": "^12.0.0",
-    "dotenv": "^16.0.3",
-    "ethers": "^5.7.2",
-    "ioredis": "^5.3.1",
-    "koa": "^2.13.4",
-    "koa-body": "^6.0.1",
-    "lodash": "^4.17.21",
-    "redis": "^4.6.5"
+
   },
   "devDependencies": {
-    "@types/koa__router": "^12.0.0",
-    "@types/lodash": "^4.14.191",
+    "lerna": "^6.6.1",
     "prettier": "^2.7.1",
     "typescript": "^4.8.4"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
