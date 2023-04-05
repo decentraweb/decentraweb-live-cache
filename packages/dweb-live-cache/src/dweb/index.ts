@@ -5,6 +5,8 @@ import { hash as namehash } from '@ensdomains/eth-ens-namehash';
 import { getContract, getContractConfig } from '@decentraweb/core/build/contracts';
 import { Cache } from '../lib/Cache';
 import { START_BLOCK } from './constants';
+import path from "path";
+import * as fs from "fs";
 
 //If no block events received for 30 seconds, we assume that provider is stuck, so we need to restart
 const BLOCK_TIMEOUT = 30000;
@@ -268,6 +270,35 @@ export class DWEBIndex {
   async resolveName(name: string, forceRefresh?: boolean): Promise<string | null> {
     const record = await this.getAddress(name, forceRefresh);
     return record?.address ? ethers.utils.getAddress(record.address) : null;
+  }
+
+  async seedCache() {
+    console.log('Seeding DB');
+    const seedDirectory = path.join(__dirname, `../../seed_data/${await this.detectNetwork()}`);
+    if(!fs.existsSync(seedDirectory)) {
+      console.log('No seed data found');
+      return;
+    }
+    const dwebRegistry = await this.dwebRegistry();
+    const seedBlockNumber: number = require(`${seedDirectory}/block_number.json`);
+    const ethAddressNodes: Record<string, string> = require(`${seedDirectory}/eth_address_nodes.json`);
+    const reverseRecordAddresses: Array<string> = require(`${seedDirectory}/reverse_record_addresses.json`);
+    const addresses: Array<[string, AddrRecord]> = Object.entries(ethAddressNodes).map(([node, address]) => {
+      return [node, {
+        address
+      }];
+    })
+    await this.addrCache.setMultiple(addresses);
+    const reverseRecords: Array<[string, ReverseRecord]> = await Promise.all(reverseRecordAddresses.map(async (address) => {
+      const reverseName = `${address.slice(2)}.addr.reverse`;
+      const reverseHash = namehash(reverseName);
+      return [reverseHash, {
+        name: await dwebRegistry.getReverseRecord(address, true)
+      }];
+    }));
+    await this.reverseCache.setMultiple(reverseRecords);
+    await this.redis.set(this.lastBlockKey, seedBlockNumber);
+    console.log(`Seeded DB at block ${seedBlockNumber}`);
   }
 }
 
