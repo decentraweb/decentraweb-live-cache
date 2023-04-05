@@ -94,7 +94,8 @@ Request:
 curl --location --request POST 'http://localhost:3000/address/batch' \
 --header 'Content-Type: application/json' \
 --data-raw '[
-    "0x13BCb838DAEFF08f4E56237098dB1d814eeB837D"
+    "0x13BCb838DAEFF08f4E56237098dB1d814eeB837D",
+    "0x6B7F15b87337a180b744B926Ed017A2D81A1d752"
 ]'
 ```
 Sample response:
@@ -107,7 +108,14 @@ Sample response:
       "success": true,
       "name": "serhii",
       "confirmed": true
-    }
+    },
+    {"
+      address":"0x6B7F15b87337a180b744B926Ed017A2D81A1d752",
+      "success":true,
+      "name":
+      "lordsats",
+      "confirmed":true
+      }
   ]
 }
 ```
