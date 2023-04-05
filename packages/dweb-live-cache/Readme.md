@@ -42,7 +42,8 @@ dwebIndex.start().then(() => {
 });
 ```
 **Note:** Make sure to have only one listener per cache instance.
-After calling start, cache class will subscribe to `block` event on contract. On each new block it will query DWEB 
+After calling start, cache will check which block was last processed and will start processing from that block until the latest one.
+Also cache class will subscribe to `block` event on contract. On each new block it will query DWEB 
 `PublicResolver` and `DefaultReverseResolver` contract events to detect changes in Ethereum address assignment.
 ## Using the cache
 To query data, you can create multiple instances of `DWEBIndex` class. There are 2 main methods:
