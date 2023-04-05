@@ -25,5 +25,6 @@
   },
   "peerDependencies": {
     "ethers": "^5.7.2"
-  }
+  },
+  "gitHead": "69730242fd845a36ff1b47bb2de7a6d506f69cec"
 }
