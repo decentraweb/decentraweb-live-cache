@@ -1,7 +1,8 @@
 import dotenv from 'dotenv';
-import { EthNetwork } from '@decentraweb/core';
 
 dotenv.config();
+
+type EthNetwork = 'mainnet' | 'goerli';
 
 const config = {
   port: parseInt(process.env.PORT || '') || 3000,
