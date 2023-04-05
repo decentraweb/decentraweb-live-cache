@@ -2,6 +2,9 @@
   "name": "decentraweb-redis-index",
   "version": "0.0.1",
   "description": "Indexing service for Decentraweb and ENS",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
     "build:lib": "npm run build --workspace=@decentraweb/dweb-live-cache",
     "build:service": "npm run build --workspace=@decentraweb/live-cache-service",
