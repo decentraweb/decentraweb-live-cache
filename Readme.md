@@ -5,9 +5,13 @@ Also, here you can find simple web service that uses this package to provide RES
 To start service do following:
 1. Clone repository
 2. Run `npm install --foreground-scripts`
-3. Copy `.env.example` file to `.env` and set `REDIS_URL`, `ETH_NETWORK` and `WEBSOCKET_URL`. 
+3. Run `lerna bootstrap`
+4. Copy `.env.example` file to `.env` and set `REDIS_URL`, `ETH_NETWORK` and `WEBSOCKET_URL`. 
 
 **Note** Currently only `mainnet` and `goerli` networks are supported.
+
+For more technical details regarding cache check [dweb-live-cache](packages/dweb-live-cache) package readme. In following
+sections we will cover how to start and use simple cache web service.
 
 ## Seeding DB
 There is `packages/dweb-live-cache/seed_data` directory that contains JSON files with seed data pulled from specific ETH network at specific block number.
