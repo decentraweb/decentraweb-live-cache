@@ -41,7 +41,10 @@ dwebIndex.start().then(() => {
   console.log('Started processing eth blocks');
 });
 ```
-**Note:** Make sure to have only one listener per cache instance.
+**Notes:** 
+1. Make sure to have only one listener per cache instance.
+2. Receiving events is crucial for cache reliability. So if no `block` events received for 30 seconds, cache 
+will throw an error as it means that connection to the blockchain is lost.
 
 After calling start, cache will check which block was last processed and will start processing from that block until the latest one.
 Also cache class will subscribe to `block` event on contract. On each new block it will query DWEB 
