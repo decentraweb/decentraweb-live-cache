@@ -6,7 +6,7 @@ To start service do following:
 1. Clone repository
 2. Run `npm install --foreground-scripts`
 3. Run `lerna bootstrap`
-4. Copy `.env.example` file to `.env` and set `REDIS_URL`, `ETH_NETWORK` and `WEBSOCKET_URL`. 
+4. Copy `.env.example` file to `.env` and set `REDIS_URL`, `ETH_NETWORK` and `WEBSOCKET_URL`. For the `WEBSOCKET_URL` specify a blockchain node, for example [Infura](https://www.infura.io/). Websocket is preferred over HTTP for massive indexing performance. Note that we don't recommend Alchemy API as it is known to cause errors.
 
 **Note** Currently only `mainnet` and `goerli` networks are supported.
 
