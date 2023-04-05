@@ -2,6 +2,7 @@
 One of the main features of Decentraweb is resolving domain names to Ethereum addresses and addresses to names. 
 Normally, this is done by querying the Ethereum blockchain. In some cases, this can be slow, especially with batch operations.
 This package allows you to create Redis cache that will be updated automatically by listening on conract events.
+
 ## Installation
 ```bash
 npm install --save @decentraweb/dweb-live-cache
@@ -19,6 +20,7 @@ import { DWEBIndex } from '@decentraweb/dweb-live-cache';
 const provider = new providers.WebSocketProvider('wss://example.com/0000000000000000000000000000000', 'mainnet');
 const dwebIndex = new DWEBIndex(provider, 'redis://localhost:6379', 'dweb-cache');
 ```
+
 ## Seeding the cache
 When starting new cache instance, you need to pre-populate it with initial data. 
 This can be done by calling `seed` method:
@@ -28,6 +30,7 @@ const provider = new providers.WebSocketProvider(WS_URL, ETH_NETWORK);
 const dwebIndex = new DWEBIndex(provider, REDIS_URL, REDIS_PREFIX);
 await dwebIndex.seedCache();
 ```
+
 ## Listening for events
 For each cache instance you need to have one process that will listen for events and update the cache. You can run `live-cache-service`
 app from our [repo](https://github.com/decentraweb/decentraweb-live-cache) or write your own script that will 
@@ -49,6 +52,7 @@ will throw an error as it means that connection to the blockchain is lost.
 After calling start, cache will check which block was last processed and will start processing from that block until the latest one.
 Also cache class will subscribe to `block` event on contract. On each new block it will query DWEB 
 `PublicResolver` and `DefaultReverseResolver` contract events to detect changes in Ethereum address assignment.
+
 ## Using the cache
 To query data, you can create multiple instances of `DWEBIndex` class. There are 2 main methods:
 1. `resolveAddress(address: string, forceRefresh?: boolean): Promise<AddressResolution>` - to resolve Ethereum address to name
