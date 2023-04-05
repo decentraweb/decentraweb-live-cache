@@ -1,16 +1,16 @@
 # Decentraweb Ethereum Address Resolution Cache
-This service aims to maintain name-to-address and address-to-name cache that is updated in realtime. 
-Cache data is stored in Redis.
+This monorepo contain package that aims to maintain name-to-address and address-to-name cache that is updated in realtime. 
+Also, here you can find simple web service that uses this package to provide REST API for name and address resolution.
 ## Setup
 To start service do following:
 1. Clone repository
-2. Run `npm install`
+2. Run `npm install --foreground-scripts`
 3. Copy `.env.example` file to `.env` and set `REDIS_URL`, `ETH_NETWORK` and `WEBSOCKET_URL`. 
 
 **Note** Currently only `mainnet` and `goerli` networks are supported.
 
 ## Seeding DB
-In repository root there is `seed_data` directory that contains JSON files with seed data pulled from specific ETH network at specific block number.
+There is `packages/dweb-live-cache/seed_data` directory that contains JSON files with seed data pulled from specific ETH network at specific block number.
 This allows to skip indexing all blocks since resolver contracts were deployed.
 
 Before seeding DB make sure that `.env` file is configured properly.
@@ -22,7 +22,7 @@ To start service run `npm start` command. Service will start indexing `AddrChang
 `NameChanged(bytes32,string)` events on `PublicResolver` and `DefaultReverseResolver` contracts.
 
 Indexing starts from last indexed block number. If there is no data in DB service will start indexing from block number 
-specified in [constants.ts](src%2Flib%2Fconstants.ts). This is number of block when `PublicResolver` and
+specified in [constants.ts](packages/dweb-live-cache/src/dweb/constants.ts). This is number of block when `PublicResolver` and
 `DefaultReverseResolver` were deployed.
 
 As the service indexing block it listens for `block` events on provider to keep track of every new block.
