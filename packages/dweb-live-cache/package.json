@@ -1,6 +1,6 @@
 {
   "name": "@decentraweb/dweb-live-cache",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ethereum address cache library for Decentraweb",
   "type": "commonjs",
   "main": "dist/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@decentraweb/live-cache-service",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Indexing service for Decentraweb and ENS",
   "type": "commonjs",
   "main": "dist/app.js",
@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@decentraweb/dweb-live-cache": "^0.1.0",
+    "@decentraweb/dweb-live-cache": "^0.1.1",
     "@koa/router": "^12.0.0",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
