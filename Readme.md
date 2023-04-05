@@ -109,8 +109,8 @@ Sample response:
       "name": "serhii",
       "confirmed": true
     },
-    {"
-      address":"0x6B7F15b87337a180b744B926Ed017A2D81A1d752",
+    {
+      "address":"0x6B7F15b87337a180b744B926Ed017A2D81A1d752",
       "success":true,
       "name":
       "lordsats",
