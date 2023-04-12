@@ -8,9 +8,9 @@ const provider = new providers.WebSocketProvider(config.ws_url, config.eth_netwo
 
 const blockProcessor = new BlockProcessor(provider, redis);
 
-blockProcessor.start().then(() => {
+/*blockProcessor.start().then(() => {
   console.log('Started processing eth blocks');
-});
+});*/
 type AddressResolution =
   | {
       name: null;

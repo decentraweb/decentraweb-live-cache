@@ -8,6 +8,7 @@
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node dist/app.js",
+    "start:ens": "node dist/watch_ens.js",
     "preflush": "npm run build",
     "flush": "node dist/bin/flush.js",
     "preseed": "npm run build",
@@ -18,6 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@decentraweb/core": "^1.2.1",
+    "@ensdomains/ens-contracts": "^0.0.20",
     "@ensdomains/eth-ens-namehash": "^2.0.15",
     "@koa/router": "^12.0.0",
     "dotenv": "^16.0.3",

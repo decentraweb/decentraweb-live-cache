@@ -3,10 +3,12 @@ import Router from '@koa/router';
 import { koaBody } from 'koa-body';
 import config from './config';
 import { resolveAddress, resolveName } from './indexer';
+import { resolveAddress as resolveAddressENS, resolveName as resolveNameENS } from './ens';
 import { isArray } from 'lodash';
 import UserError from './lib/errors/UserError';
 
 const app = new Koa();
+console.log('Starting app', resolveAddressENS, resolveNameENS);
 
 app.use(async (ctx, next) => {
   try {

@@ -201,7 +201,7 @@ class BlockProcessor {
       const { args, blockNumber, transactionIndex, logIndex } = event;
       if (!args) {
         console.warn(`No args in event ${event.eventSignature}`);
-        return;
+        continue;
       }
       const [nodehash, name] = args;
       data.push([
